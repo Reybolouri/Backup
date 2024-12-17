@@ -83,7 +83,6 @@ def update_bls_data():
     combined_df.to_csv(CSV_file, index=False)
     print(f"Data successfully updated and saved to {CSV_file}.")
     
-
 # Main execution
 if __name__ == "__main__":
     update_bls_data()
