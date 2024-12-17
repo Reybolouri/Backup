@@ -32,7 +32,7 @@ def collect_bls_data(seriesId, start_year, end_year):
     response.raise_for_status()  # Handles HTTP errors
     return response.json()
 
-#processing data - json
+#processing data - 
 def process_bls_data(json_data):
     processed_data = []
     if 'Results' in json_data and 'series' in json_data['Results']:
@@ -56,7 +56,7 @@ def process_bls_data(json_data):
                     
     return pd.DataFrame(processed_data)
 
-#start year=2019,  update data for latest date
+#start year=2019,  update data for latest date, clean the data- drop duplicates
 def update_bls_data():
     if os.path.exists(CSV_file):
         existing_data = pd.read_csv(CSV_file)
