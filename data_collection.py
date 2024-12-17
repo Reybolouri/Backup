@@ -87,6 +87,7 @@ def update_bls_data():
     combined_df[['series_id', 'date', 'value']].to_json(JSON_file, orient="records", indent=3)
     print(f"Data successfully saved to {JSON_file}.")
 
+
 # Main execution
 if __name__ == "__main__":
     update_bls_data()
