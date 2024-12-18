@@ -1,67 +1,14 @@
-
-import streamlit as st
-#st.write("Hello World")
-import pandas as pd
-import os
-
-
-st.title("U.S.A. Labor Statistics")
-st.markdown("### Visualizing trends in employment, unemployment, and earnings data")
-
-
-DATA_FILE = "BLS_data.csv"
-
-df = pd.read_csv(DATA_FILE)
-
-
-series_names = {
-    "LNS12000000": "Civilian Employment",
-    "LNS13000000": "Civilian Unemployment",
-    "LNS14000000": "Unemployment Rate",
-    "CES0000000001": "Total Nonfarm Employment",
-    "CES0500000002": "Average Weekly Hours of All Employees",
-    "CES0500000003": "Average Hourly Earnings of All Employees"
-}
-
-# Replace series IDs with user-friendly names
-df['series_name'] = df['series_id'].map(series_names)
-
-# Sidebar Filters
-st.sidebar.header("Filter Options")
-selected_series = st.sidebar.multiselect(
-    "Select Data Series",
-    options=df['series_name'].unique(),
-    default=df["Average Weekly Hours of All Employees", "Average Hourly Earnings of All Employees"].unique()
-)
-
-start_date = st.sidebar.date_input("Start Date", value=df['date'].min())
-end_date = st.sidebar.date_input("End Date", value=df['date'].max())
-
-# Filter Data
-filtered_data = df[
-    (df['series_name'].isin(selected_series)) &
-    (df['date'] >= pd.Timestamp(start_date)) &
-    (df['date'] <= pd.Timestamp(end_date))
-]
-
-# Display Filtered Data
-st.write("### Filtered Data")
-st.dataframe(filtered_data)
-
-# Visualization
-st.write("### Data Trends Over Time")
-for series in selected_series:
-    series_data = filtered_data[filtered_data['series_name'] == series]
-    st.line_chart(series_data.set_index('date')['value'], use_container_width=True)
-####################################################################################################################################
-
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 
 # Set page configuration for a wider layout
-st.set_page_config(page_title="US Labor Market Dashboard", layout="wide")
+st.set_page_config(
+    page_title="US Labor Market Dashboard",
+    page_icon="📊",
+    layout="centered"
+)
 
 # Mapping of series IDs to human-readable names
 series_names = {
@@ -137,17 +84,15 @@ filtered_data = data[
 st.markdown(
     """
     <div style="text-align: center; padding: 10px 0;">
-        <h1 style="color:#9C27B0;">US Labor Market</h1>
-        <p style="color:gray;">Unemployment and Labor trends over the years. Data sourced from the U.S. Bureau of Labor Statistics.</p>
+        <h1 style="color:#0D47A1;">US Labor Market Dashboard</h1>
+        <p style="color:gray;">Unemployment and labor trends over the years, sourced from the Bureau of Labor Statistics.</p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-
-
 # Interactive Plot: Unemployment Rates
-st.subheader("Unemployment Rate Over Time")
+st.subheader("Unemployment Rates")
 unemployment_data = filtered_data[filtered_data['series_id'] == 'LNS14000000']
 fig_unemployment = go.Figure()
 
@@ -172,7 +117,7 @@ fig_unemployment.update_layout(
 st.plotly_chart(fig_unemployment, use_container_width=True)
 
 # Interactive Plot: Total Nonfarm Workers
-st.subheader("Total Nonfarm Workers Over Time")
+st.subheader("Number of Nonfarm Employment")
 nonfarm_data = filtered_data[filtered_data['series_id'] == 'CES0000000001']
 fig_nonfarm = go.Figure()
 
@@ -199,10 +144,15 @@ st.plotly_chart(fig_nonfarm, use_container_width=True)
 # COVID-19's Impact
 st.markdown("""
 ### COVID-19's Impact on the Labor Market
-Wow! The impact of COVID-19 on the labor market is hard to miss. In 2020, unemployment rates skyrocketed, and millions of jobs seemed to disappear almost overnight.
+Wow! The impact of COVID-19 on the labor market is hard to miss. In 2020, unemployment rates skyrocketed, and thousands of jobs seemed to disappear suddenly.
 
 Quarantines, businesses shutting down, and widespread illness left workplaces empty and people struggling. It was one of the most sudden and dramatic economic shocks in history.
 """)
+
+
+
+
+
 
 # Relationship between "Average Weekly Hours" and "Average Hourly Earnings"
 st.subheader("Trends: Weekly Hours vs Hourly Earnings Over Time")
@@ -266,6 +216,39 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
+
+# Interactive Pie Chart for Employment vs Unemployment with Year Filter
+st.subheader("Interactive Pie Chart: Employment vs Unemployment")
+
+# Filter data based on the selected year range
+filtered_employment = data[(data['series_id'] == 'LNS12000000') & (data['year'].between(selected_years[0], selected_years[1]))]
+filtered_unemployment = data[(data['series_id'] == 'LNS13000000') & (data['year'].between(selected_years[0], selected_years[1]))]
+
+# Aggregate the total values over the selected year range
+employment_total = filtered_employment['value'].sum()
+unemployment_total = filtered_unemployment['value'].sum()
+
+# Create a DataFrame for the pie chart
+pie_data = pd.DataFrame({
+    "Category": ["Employment", "Unemployment"],
+    "Value": [employment_total, unemployment_total]
+})
+
+# Create the pie chart
+fig_pie = px.pie(
+    pie_data,
+    names="Category",
+    values="Value",
+    title=f"Employment vs Unemployment ({selected_years[0]} - {selected_years[1]})",
+    color="Category",
+    color_discrete_map={"Employment": "blue", "Unemployment": "red"}
+)
+
+# Display the pie chart
+st.plotly_chart(fig_pie, use_container_width=True)
+
+
 
 # Summary Statistics
 st.subheader("Summary Statistics")
