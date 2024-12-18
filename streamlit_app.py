@@ -11,6 +11,7 @@ st.set_page_config(
 )
 
 # Mapping of series IDs to human-readable names
+
 series_names = {
     "LNS12000000": "Civilian Employment",
     "LNS13000000": "Civilian Unemployment",
